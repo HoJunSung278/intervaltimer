@@ -1,0 +1,118 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>런닝머신 인터벌 타이머</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 50px; background: #f0f0f0; }
+    h1 { font-size: 32px; margin-bottom: 10px; }
+    #timer { font-size: 48px; margin: 20px 0; }
+    #status { font-size: 28px; margin-bottom: 20px; }
+    .btn-container { margin-top: 20px; }
+    button {
+      font-size: 24px;
+      padding: 16px 28px;
+      margin: 0 10px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #startBtn { background-color: #28a745; color: white; }
+    #pauseBtn { background-color: #ffc107; color: black; }
+    #skipBtn { background-color: #007bff; color: white; }
+  </style>
+</head>
+<body>
+  <h1>런닝머신 인터벌 타이머</h1>
+  <div id="status">시작을 눌러주세요</div>
+  <div id="timer">00:00.00</div>
+  <div class="btn-container">
+    <button id="startBtn">▶️ 시작</button>
+    <button id="pauseBtn">⏸️ 일시정지</button>
+    <button id="skipBtn">⏭️ 다음</button>
+  </div>
+
+  <script>
+    const sequence = [
+      { name: "워밍업 걷기", duration: 240 },
+      { name: "1세트 러닝", duration: 60 },
+      { name: "1세트 걷기", duration: 120 },
+      { name: "2세트 러닝", duration: 60 },
+      { name: "2세트 걷기", duration: 120 },
+      { name: "3세트 러닝", duration: 60 },
+      { name: "3세트 걷기", duration: 120 },
+      { name: "4세트 러닝", duration: 60 },
+      { name: "4세트 걷기", duration: 120 },
+      { name: "5세트 러닝", duration: 60 },
+      { name: "5세트 걷기", duration: 120 },
+      { name: "다운 조깅", duration: 240 },
+      { name: "쿨다운 걷기", duration: 420 },
+    ];
+
+    let index = 0;
+    let timeLeft = 0;
+    let timerId = null;
+    let isPaused = false;
+    let startTime = 0;
+    let endTime = 0;
+
+    function updateTimer() {
+      const now = performance.now();
+      const remaining = Math.max(0, endTime - now);
+      const seconds = Math.floor(remaining / 1000);
+      const milliseconds = Math.floor((remaining % 1000) / 10);
+      const min = String(Math.floor(seconds / 60)).padStart(2, '0');
+      const sec = String(seconds % 60).padStart(2, '0');
+      const ms = String(milliseconds).padStart(2, '0');
+      document.getElementById("timer").innerText = `${min}:${sec}.${ms}`;
+    }
+
+    function nextStep() {
+      if (index >= sequence.length) {
+        document.getElementById("status").innerText = "운동 완료! 👏";
+        document.getElementById("timer").innerText = "✔️";
+        return;
+      }
+
+      const step = sequence[index];
+      document.getElementById("status").innerText = step.name;
+      startTime = performance.now();
+      endTime = startTime + step.duration * 1000;
+
+      if (timerId) cancelAnimationFrame(timerId);
+      tick();
+    }
+
+    function tick() {
+      if (!isPaused) {
+        updateTimer();
+        const now = performance.now();
+        if (now >= endTime) {
+          index++;
+          nextStep();
+          return;
+        }
+      }
+      timerId = requestAnimationFrame(tick);
+    }
+
+    document.getElementById("startBtn").addEventListener("click", () => {
+      index = 0;
+      isPaused = false;
+      nextStep();
+    });
+
+    document.getElementById("pauseBtn").addEventListener("click", () => {
+      isPaused = !isPaused;
+      document.getElementById("pauseBtn").innerText = isPaused ? "▶️ 재개" : "⏸️ 일시정지";
+    });
+
+    document.getElementById("skipBtn").addEventListener("click", () => {
+      isPaused = false;
+      index++;
+      nextStep();
+    });
+  </script>
+</body>
+</html>
