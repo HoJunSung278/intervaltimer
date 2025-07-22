@@ -1,0 +1,138 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>런닝머신 인터벌 타이머</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            background-color: #121212;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 30px;
+        }
+        h1 {
+            font-size: 2.8em;
+            margin-bottom: 20px;
+        }
+        #interval-display {
+            font-size: 2em;
+            margin: 20px 0;
+        }
+        #timer {
+            font-size: 5em;
+            margin: 20px 0;
+        }
+        button {
+            font-size: 2em;
+            margin: 10px;
+            padding: 20px 40px;
+            border: none;
+            border-radius: 12px;
+            background-color: #1e88e5;
+            color: white;
+        }
+        button:hover {
+            background-color: #1565c0;
+        }
+    </style>
+</head>
+<body>
+    <h1>런닝머신 인터벌 타이머</h1>
+    <div id="interval-display">시작 준비</div>
+    <div id="timer">00:00:00</div>
+    <button onclick="startTimer()">시작</button>
+    <button onclick="pauseTimer()">일시 정지</button>
+    <button onclick="nextInterval()">다음</button>
+
+    <script>
+        const intervals = [
+            { name: "워밍업", duration: 240, speed: "5.5~6.0 km/h" },
+            { name: "인터벌 ①", duration: 60, speed: "9.5 km/h" },
+            { name: "회복 걷기", duration: 60, speed: "6.0 km/h" },
+            { name: "인터벌 ②", duration: 60, speed: "9.5 km/h" },
+            { name: "회복 걷기", duration: 60, speed: "6.0 km/h" },
+            { name: "인터벌 ③", duration: 60, speed: "10.0 km/h" },
+            { name: "회복 걷기", duration: 60, speed: "6.0 km/h" },
+            { name: "인터벌 ④", duration: 60, speed: "10.0 km/h" },
+            { name: "회복 걷기", duration: 60, speed: "6.0 km/h" },
+            { name: "인터벌 ⑤", duration: 60, speed: "10.5 km/h" },
+            { name: "회복 걷기", duration: 60, speed: "6.0 km/h" },
+            { name: "다운 조깅", duration: 240, speed: "7.0 km/h" },
+            { name: "쿨다운 걷기", duration: 420, speed: "5.5~6.0 km/h" }
+        ];
+
+        let current = 0;
+        let timer = null;
+        let startTime = null;
+        let intervalDuration = 0;
+
+        function formatTime(ms) {
+            const totalSec = Math.floor(ms / 1000);
+            const minutes = Math.floor(totalSec / 60).toString().padStart(2, '0');
+            const seconds = (totalSec % 60).toString().padStart(2, '0');
+            const centiseconds = Math.floor((ms % 1000) / 10).toString().padStart(2, '0');
+            return `${minutes}:${seconds}:${centiseconds}`;
+        }
+
+        function showIntervalInfo() {
+            const interval = intervals[current];
+            document.getElementById('interval-display').textContent = `${interval.name} – 속도: ${interval.speed}`;
+        }
+
+        function startTimer() {
+            if (current >= intervals.length) return;
+
+            intervalDuration = intervals[current].duration * 1000;
+            startTime = Date.now();
+
+            showIntervalInfo();
+            update(); // Call once immediately
+
+            if (!timer) {
+                timer = setInterval(update, 10);
+            }
+        }
+
+        function update() {
+            const elapsed = Date.now() - startTime;
+            const remaining = Math.max(intervalDuration - elapsed, 0);
+
+            document.getElementById('timer').textContent = formatTime(remaining);
+
+            if (remaining <= 0) {
+                clearInterval(timer);
+                timer = null;
+                current++;
+                if (current < intervals.length) {
+                    startTimer();
+                } else {
+                    document.getElementById('interval-display').textContent = "완료!";
+                    document.getElementById('timer').textContent = "00:00:00";
+                }
+            }
+        }
+
+        function pauseTimer() {
+            if (timer) {
+                clearInterval(timer);
+                timer = null;
+                intervalDuration -= Date.now() - startTime;
+            }
+        }
+
+        function nextInterval() {
+            pauseTimer();
+            current++;
+            if (current < intervals.length) {
+                startTimer();
+            } else {
+                document.getElementById('interval-display').textContent = "완료!";
+                document.getElementById('timer').textContent = "00:00:00";
+            }
+        }
+    </script>
+</body>
+</html>
